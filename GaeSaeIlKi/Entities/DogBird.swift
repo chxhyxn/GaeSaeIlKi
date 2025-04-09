@@ -14,5 +14,5 @@ struct DogBird: Identifiable {
     var isFlying: Bool = false
     var rotation: Double = Double.random(in: 0...360)
     var speed: Double = Double.random(in: 1...3)
-    var size: CGFloat = CGFloat.random(in: 50...80)
+    var size: CGFloat = CGFloat.random(in: 100...160)
 }
