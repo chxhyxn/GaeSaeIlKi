@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DogBird: Identifiable {
     var id = UUID()
+    var name: String = "이름없는 개새"
     var position: CGPoint
     var failureNote: String
     var isFlying: Bool = false

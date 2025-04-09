@@ -23,8 +23,7 @@ struct DogBirdView: View {
         ZStack {
             if dogBird.isFlying {
                 LottieView(name: "flying_dogbird", loopMode: .loop)
-                    .frame(width: dogBird.size * 1.2, height: dogBird.size * 1.2) // 날 때는 약간 크게
-                    .offset(y: -10) // 위로 약간 올림
+                    .frame(width: dogBird.size, height: dogBird.size)
             } else {
                 LottieView(name: "dogbird", loopMode: .loop)
                     .frame(width: dogBird.size, height: dogBird.size)
