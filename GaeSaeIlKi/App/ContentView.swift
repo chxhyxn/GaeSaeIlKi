@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @Environment(ContentViewModel.self) var viewModel
@@ -15,6 +16,7 @@ struct ContentView: View {
             switch viewModel.currentScreen {
             case .main:
                 MainView()
+                    .modelContainer(for: [DogBird.self])
             }
         }
     }
