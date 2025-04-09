@@ -20,7 +20,10 @@ struct MainView: View {
     @State private var failureNote: String = ""
     @State private var showAddGoalSheet = false
 
-    @FocusState private var isTextFieldFocused: Bool
+    @FocusState private var isTopTextFieldFocused: Bool
+    @FocusState private var isBottomTextFieldFocused: Bool
+    
+    @StateObject var soundManager = SoundManager()
     
     let timer = Timer.publish(every: 0.03, on: .main, in: .common).autoconnect()
     
@@ -28,75 +31,108 @@ struct MainView: View {
         ZStack {
             GeometryReader { geometry in
                 ZStack {
-                    // 잔디 배경
+                    // MARK: 잔디 배경
                     Image(uiImage: UIImage(named: "bg")!)
                         .resizable(resizingMode: .stretch)
                         .onAppear {
                             fieldSize = geometry.size
                         }
                     
-                    // 개새들 (욕아님!)
+                    // MARK: 개새들 (욕아님!)
                     ForEach(dogBirds) { dogBird in
                         DogBirdView(dogBird: dogBird)
                     }
                 }
                 .ignoresSafeArea(.all)
                 .onTapGesture {
-                    isTextFieldFocused = false
+                    isTopTextFieldFocused = false
+                    isBottomTextFieldFocused = false
                 }
             }
             
             // UI
             VStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(.ultraThinMaterial)
-                        .shadow(radius: 2)
+                // MARK: 상단 UI
+                VStack {
+                    Text("나의 목표")
+                        .font(.headline)
                     
-                    VStack {
-                        Text("나의 목표")
-                            .font(.headline)
-                            .padding(.top, 5)
+                    HStack {
+                        TextField("당신의 목표를 작성하세요.", text: $currentGoal)
+                            .padding()
+                            .background(isTopTextFieldFocused ? .white : .white.opacity(0.7))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                            .shadow(radius: 1)
+                            .focused($isTopTextFieldFocused)
                         
-                        Text(currentGoal)
-                            .font(.title)
-                            .padding(.horizontal)
-                            .padding(.bottom, 5)
+                        Button(action: {
+                            isTopTextFieldFocused = false
+                            UserDefaults.standard.set(currentGoal, forKey: "currentGoal")
+                        }) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(!isTopTextFieldFocused||currentGoal.isEmpty ? .gray.opacity(0.2) : .gray)
+                                .frame(width: 50, height: 50)
+                                .background(!isTopTextFieldFocused||currentGoal.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                )
+                                .shadow(color: currentGoal.isEmpty ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                        }
+                        .disabled(!isTopTextFieldFocused||currentGoal.isEmpty)
                     }
                 }
                 .padding()
-
-                .frame(height: 80)
+                .background(.ultraThinMaterial)
+                .frame(height: 120)
+                .clipShape(
+                    CustomCornerShape(
+                    topLeft: CGSize(width: 48, height: 40),
+                    topRight: CGSize(width: 48, height: 40),
+                    bottomLeft: CGSize(width: 48, height: 40),
+                    bottomRight: CGSize(width: 48, height: 40)
+                ))
+                .padding()
+                .shadow(radius: 1)
                 .onTapGesture {
-                    // Dismiss keyboard first, then show sheet
-                    isTextFieldFocused = false
-                    showAddGoalSheet = true
+                    isTopTextFieldFocused = false
+                    isBottomTextFieldFocused = false
                 }
                 
                 Spacer()
                 
-                // 실패일기 입력 영역
+                // MARK: 하단 UI (실패일기 입력 영역)
                 HStack {
-                    TextField("오늘의 실패일기를 작성하세요", text: $failureNote)
+                    TextField("오늘의 실패일기를 작성하세요.", text: $failureNote)
                         .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
+                        .background(isBottomTextFieldFocused ? .white : .white.opacity(0.7))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
                         .shadow(radius: 1)
-                        .focused($isTextFieldFocused)
+                        .focused($isBottomTextFieldFocused)
                     
                     Button(action: {
                         addDogBird()
-                        isTextFieldFocused = false
+                        isBottomTextFieldFocused = false
                     }) {
                         Image(systemName: "plus")
                             .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(failureNote.isEmpty ? .gray.opacity(0.2) : .white)
+                            .foregroundColor(failureNote.isEmpty ? .gray.opacity(0.2) : .gray)
                             .frame(width: 50, height: 50)
-                            .background(.ultraThinMaterial)
+                            .background(failureNote.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
                             .clipShape(Circle())
                             .overlay(
                                 Circle()
-                                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                             )
                             .shadow(color: failureNote.isEmpty ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
                     }
@@ -105,21 +141,36 @@ struct MainView: View {
                 .padding()
                 .background(.ultraThinMaterial)
                 .frame(height: 80)
-                .clipShape(.rect(cornerRadius: 10))
+                .clipShape(.rect(cornerRadius: 40))
                 .padding()
+                .shadow(radius: 1)
+                .onTapGesture {
+                    isTopTextFieldFocused = false
+                    isBottomTextFieldFocused = false
+                }
+            }
+            
+            // MARK: 큰 음성 감지 UI
+            VStack {
+                Spacer()
+                VolumeRingView(decibel: soundManager.soundLevel)
+                Spacer()
             }
         }
+        .animation(.default, value: failureNote.isEmpty)
+        .animation(.default, value: !isTopTextFieldFocused||currentGoal.isEmpty)
+        .animation(.default, value: isTopTextFieldFocused)
+        .animation(.default, value: isBottomTextFieldFocused)
+        
         .onAppear() {
             showAddGoalSheet = currentGoal == ""
-        }
-        .sheet(isPresented: $showAddGoalSheet) {
-            GoalSettingView(currentGoal: $currentGoal)
         }
         .onReceive(timer) { _ in
             updateDogBirdPositions()
         }
     }
     
+    // MARK: 개새 추가 함수
     private func addDogBird() {
         guard !failureNote.isEmpty else { return }
         
@@ -135,7 +186,7 @@ struct MainView: View {
         failureNote = ""
     }
     
-    // 개새 위치 업데이트
+    // MARK: 개새 위치 업데이트
     private func updateDogBirdPositions() {
         var birdsToDelete: [DogBird] = []
 
@@ -157,7 +208,6 @@ struct MainView: View {
                 newPosition.x += CGFloat(cos(angle) * dogBird.speed)
                 newPosition.y += CGFloat(sin(angle) * dogBird.speed)
                 
-                // 화면 경계에 닿으면 방향 전환
                 if newPosition.x < 20 || newPosition.x > fieldSize.width - 20 {
                     dogBird.rotation = 180 - dogBird.rotation
                 }
@@ -166,12 +216,10 @@ struct MainView: View {
                     dogBird.rotation = 360 - dogBird.rotation
                 }
                 
-                // 방향 전환 후 위치 재계산
                 let newAngle = dogBird.rotation * .pi / 180
                 newPosition.x = dogBird.position.x + CGFloat(cos(newAngle) * dogBird.speed)
                 newPosition.y = dogBird.position.y + CGFloat(sin(newAngle) * dogBird.speed)
                 
-                // 가끔 랜덤하게 방향 변경
                 if Int.random(in: 0...100) < 3 {
                     dogBird.rotation = Double.random(in: 0...360)
                 }
