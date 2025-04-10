@@ -184,43 +184,75 @@ struct MainView: View {
     // MARK: 개새 위치 업데이트
     private func updateDogBirdPositions() {
         for dogBird in dogBirds {
-            var newPosition = dogBird.position
-            newPosition.y = 200
-            newPosition.x = 200
-            dogBird.position = newPosition
-            dogBird.rotation = Double.random(in: 150...210)
-//            if soundManager.soundLevel > 0 {
-//                var newPosition = dogBird.position
-//                newPosition.y -= 10
-//                newPosition.x += CGFloat.random(in: -3...3)
-//                dogBird.position = newPosition
-//                dogBird.rotation = Double.random(in: 150...210)
-//            } else {
-//                // 일반적인 움직임 (랜덤 방향으로 돌아다님)
-//                let angle = dogBird.rotation * .pi / 180
-//                var newPosition = dogBird.position
-//                
-//                newPosition.x += CGFloat(cos(angle) * dogBird.speed)
-//                newPosition.y += CGFloat(sin(angle) * dogBird.speed)
-//                
-//                if newPosition.x < 20 || newPosition.x > fieldSize.width - 20 {
-//                    dogBird.rotation = 180 - dogBird.rotation
-//                }
-//                
-//                if newPosition.y < 20 || newPosition.y > fieldSize.height - 20 {
-//                    dogBird.rotation = 360 - dogBird.rotation
-//                }
-//                
-//                let newAngle = dogBird.rotation * .pi / 180
-//                newPosition.x = dogBird.position.x + CGFloat(cos(newAngle) * dogBird.speed)
-//                newPosition.y = dogBird.position.y + CGFloat(sin(newAngle) * dogBird.speed)
-//                
-//                if Int.random(in: 0...100) < 3 {
-//                    dogBird.rotation = Double.random(in: 0...360)
-//                }
-//                
-//                dogBird.position = newPosition
-//            }
+            if soundManager.soundLevel > 0 {
+                // 소리가 감지되면 위로 날아간다
+                dogBird.isFlying = true
+                var newPosition = dogBird.position
+                newPosition.y -= CGFloat(2.0 + (soundManager.soundLevel * 10)) // 소리 크기에 비례해서 더 빨리 올라감
+                newPosition.x += CGFloat.random(in: -2...2) // 살짝 좌우 흔들림
+                
+                // 화면 경계 체크
+                if newPosition.x < 20 {
+                    newPosition.x = 20
+                } else if newPosition.x > fieldSize.width - 20 {
+                    newPosition.x = fieldSize.width - 20
+                }
+                
+                if newPosition.y < 20 {
+                    newPosition.y = 20
+                }
+                
+                dogBird.position = newPosition
+            } else {
+                // 소리가 없으면 자유롭게 돌아다님
+                dogBird.isFlying = false
+                let angle = dogBird.rotation * .pi / 180
+                var newPosition = dogBird.position
+                
+                // 현재 방향으로 이동
+                newPosition.x += CGFloat(cos(angle) * dogBird.speed)
+                newPosition.y += CGFloat(sin(angle) * dogBird.speed)
+                
+                // 화면 경계에 닿으면 반대 방향으로 튕김
+                var directionChanged = false
+                
+                if newPosition.x < 20 || newPosition.x > fieldSize.width - 20 {
+                    dogBird.rotation = 180 - dogBird.rotation
+                    directionChanged = true
+                }
+                
+                if newPosition.y < 20 || newPosition.y > fieldSize.height - 20 {
+                    dogBird.rotation = 360 - dogBird.rotation
+                    directionChanged = true
+                }
+                
+                // 방향이 변경되었다면 새 방향으로 위치 재계산
+                if directionChanged {
+                    let newAngle = dogBird.rotation * .pi / 180
+                    newPosition.x = dogBird.position.x + CGFloat(cos(newAngle) * dogBird.speed)
+                    newPosition.y = dogBird.position.y + CGFloat(sin(newAngle) * dogBird.speed)
+                }
+                
+                // 가끔 랜덤하게 방향 변경 (3% 확률)
+                if Int.random(in: 0...100) < 3 {
+                    dogBird.rotation = Double.random(in: 0...360)
+                }
+                
+                // 화면 밖에 있으면 화면 안으로 강제 이동
+                if newPosition.x < 20 {
+                    newPosition.x = 20
+                } else if newPosition.x > fieldSize.width - 20 {
+                    newPosition.x = fieldSize.width - 20
+                }
+                
+                if newPosition.y < 20 {
+                    newPosition.y = 20
+                } else if newPosition.y > fieldSize.height - 20 {
+                    newPosition.y = fieldSize.height - 20
+                }
+                
+                dogBird.position = newPosition
+            }
         }
     }
 }
