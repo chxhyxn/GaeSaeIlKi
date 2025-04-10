@@ -253,9 +253,7 @@ struct MainView: View {
         .animation(.default, value: isTopTextFieldFocused)
         .animation(.default, value: isBottomTextFieldFocused)
         .onReceive(timer) { _ in
-            if draggingDogBirdID == nil {
-                updateDogBirdPositions()
-            }
+            updateDogBirdPositions()
         }
         .sheet(isPresented: $showingNoteDetail, onDismiss: {
             if let selectedDogBird = selectedDogBird {
@@ -323,6 +321,11 @@ struct MainView: View {
     // MARK: 개새 위치 업데이트
     private func updateDogBirdPositions() {
         for dogBird in dogBirds {
+            // 현재 드래그 중인 개새는 건너뜀
+            if draggingDogBirdID == dogBird.id {
+                continue
+            }
+            
             if soundManager.soundLevel > 0 {
                 // 소리가 감지되면 위로 날아간다
                 dogBird.isFlying = true
