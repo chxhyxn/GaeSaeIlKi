@@ -18,7 +18,6 @@ struct MainView: View {
     @State private var totalGaeSae: Int = UserDefaults.standard.integer(forKey: "totalGaeSae")
 
     @State private var failureNote: String = ""
-    @State private var showAddGoalSheet = false
 
     @FocusState private var isTopTextFieldFocused: Bool
     @FocusState private var isBottomTextFieldFocused: Bool
@@ -161,10 +160,6 @@ struct MainView: View {
         .animation(.default, value: !isTopTextFieldFocused||currentGoal.isEmpty)
         .animation(.default, value: isTopTextFieldFocused)
         .animation(.default, value: isBottomTextFieldFocused)
-        
-        .onAppear() {
-            showAddGoalSheet = currentGoal == ""
-        }
         .onReceive(timer) { _ in
             updateDogBirdPositions()
         }
@@ -188,50 +183,44 @@ struct MainView: View {
     
     // MARK: 개새 위치 업데이트
     private func updateDogBirdPositions() {
-        var birdsToDelete: [DogBird] = []
-
         for dogBird in dogBirds {
-            if dogBird.isFlying {
-                var newPosition = dogBird.position
-                newPosition.y -= 10
-                newPosition.x += CGFloat.random(in: -3...3)
-                dogBird.position = newPosition
-                
-                if newPosition.y < -100 {
-                    birdsToDelete.append(dogBird)
-                }
-            } else {
-                // 일반적인 움직임 (랜덤 방향으로 돌아다님)
-                let angle = dogBird.rotation * .pi / 180
-                var newPosition = dogBird.position
-                
-                newPosition.x += CGFloat(cos(angle) * dogBird.speed)
-                newPosition.y += CGFloat(sin(angle) * dogBird.speed)
-                
-                if newPosition.x < 20 || newPosition.x > fieldSize.width - 20 {
-                    dogBird.rotation = 180 - dogBird.rotation
-                }
-                
-                if newPosition.y < 20 || newPosition.y > fieldSize.height - 20 {
-                    dogBird.rotation = 360 - dogBird.rotation
-                }
-                
-                let newAngle = dogBird.rotation * .pi / 180
-                newPosition.x = dogBird.position.x + CGFloat(cos(newAngle) * dogBird.speed)
-                newPosition.y = dogBird.position.y + CGFloat(sin(newAngle) * dogBird.speed)
-                
-                if Int.random(in: 0...100) < 3 {
-                    dogBird.rotation = Double.random(in: 0...360)
-                }
-                
-                dogBird.position = newPosition
-            }
+            var newPosition = dogBird.position
+            newPosition.y = 200
+            newPosition.x = 200
+            dogBird.position = newPosition
+            dogBird.rotation = Double.random(in: 150...210)
+//            if soundManager.soundLevel > 0 {
+//                var newPosition = dogBird.position
+//                newPosition.y -= 10
+//                newPosition.x += CGFloat.random(in: -3...3)
+//                dogBird.position = newPosition
+//                dogBird.rotation = Double.random(in: 150...210)
+//            } else {
+//                // 일반적인 움직임 (랜덤 방향으로 돌아다님)
+//                let angle = dogBird.rotation * .pi / 180
+//                var newPosition = dogBird.position
+//                
+//                newPosition.x += CGFloat(cos(angle) * dogBird.speed)
+//                newPosition.y += CGFloat(sin(angle) * dogBird.speed)
+//                
+//                if newPosition.x < 20 || newPosition.x > fieldSize.width - 20 {
+//                    dogBird.rotation = 180 - dogBird.rotation
+//                }
+//                
+//                if newPosition.y < 20 || newPosition.y > fieldSize.height - 20 {
+//                    dogBird.rotation = 360 - dogBird.rotation
+//                }
+//                
+//                let newAngle = dogBird.rotation * .pi / 180
+//                newPosition.x = dogBird.position.x + CGFloat(cos(newAngle) * dogBird.speed)
+//                newPosition.y = dogBird.position.y + CGFloat(sin(newAngle) * dogBird.speed)
+//                
+//                if Int.random(in: 0...100) < 3 {
+//                    dogBird.rotation = Double.random(in: 0...360)
+//                }
+//                
+//                dogBird.position = newPosition
+//            }
         }
-
-        for bird in birdsToDelete {
-            context.delete(bird)
-        }
-
-        try? context.save()
     }
 }
