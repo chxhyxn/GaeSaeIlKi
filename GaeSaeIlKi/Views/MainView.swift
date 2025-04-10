@@ -40,6 +40,34 @@ struct MainView: View {
                             fieldSize = geometry.size
                         }
                     
+                    // MARK: 쓰레기통
+                    ZStack {
+                        Circle()
+                            .fill(trashHighlighted ? Color.red.opacity(0.3) : Color.gray.opacity(0.2))
+                            .frame(width: 70, height: 70)
+                            .overlay(
+                                Circle()
+                                    .stroke(trashHighlighted ? Color.red : Color.gray, lineWidth: trashHighlighted ? 3 : 1)
+                            )
+                        
+                        Image(systemName: "trash")
+                            .symbolEffect(.bounce, value: trashHighlighted)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(trashHighlighted ? .red : .gray)
+                            .frame(width: 70, height: 70)
+                            .background(trashHighlighted ? .white.opacity(0.9) : .white.opacity(0.8))
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            )
+                            .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                    }
+                    .position(x: geometry.size.width / 2, y: geometry.size.height - 120)
+                    .opacity(trashVisible ? 1 : 0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashVisible)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashHighlighted)
+                    
                     // MARK: 개새들 (욕아님!)
                     ForEach(dogBirds) { dogBird in
                         ZStack {
@@ -70,7 +98,7 @@ struct MainView: View {
                                     
                                     // 쓰레기통 위에 있는지 확인
                                     let trashPosition = CGPoint(
-                                        x: geometry.size.width - 50,
+                                        x: geometry.size.width / 2,
                                         y: geometry.size.height - 120
                                     )
                                     
@@ -84,7 +112,7 @@ struct MainView: View {
                                 .onEnded { gesture in
                                     // 드래그 종료
                                     let trashPosition = CGPoint(
-                                        x: geometry.size.width - 50,
+                                        x: geometry.size.width / 2,
                                         y: geometry.size.height - 120
                                     )
                                     
@@ -112,36 +140,6 @@ struct MainView: View {
                             }
                         }
                     }
-                    
-                    // MARK: 쓰레기통
-                    ZStack {
-                        Circle()
-                            .fill(trashHighlighted ? Color.red.opacity(0.3) : Color.gray.opacity(0.2))
-                            .frame(width: 70, height: 70)
-                            .overlay(
-                                Circle()
-                                    .stroke(trashHighlighted ? Color.red : Color.gray, lineWidth: 2)
-                            )
-                        
-                        Image(systemName: "trash")
-//                            .font(.system(size: 30))
-//                            .foregroundColor(trashHighlighted ? .red : .gray)
-                            .symbolEffect(.bounce, value: trashHighlighted)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(trashHighlighted ? .red : .gray)
-                            .frame(width: 70, height: 70)
-                            .background(trashHighlighted ? .white.opacity(0.9) : .white.opacity(0.2))
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                            )
-                            .shadow(color: trashHighlighted ? Color.black.opacity(0.1) : .clear, radius: 6, x: 0, y: 3)
-                    }
-                    .position(x: geometry.size.width - 50, y: geometry.size.height - 120)
-                    .opacity(trashVisible ? 1 : 0)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashVisible)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashHighlighted)
                 }
                 .ignoresSafeArea(.all)
                 .onTapGesture {
