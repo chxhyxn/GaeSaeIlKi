@@ -13,12 +13,15 @@ struct MainView: View {
     @Query private var dogBirds: [DogBird]
     
     @State private var fieldSize: CGSize = .zero
-    
     @State private var currentGoal: String = (UserDefaults.standard.string(forKey: "currentGoal") ?? "")
     @State private var totalGaeSae: Int = UserDefaults.standard.integer(forKey: "totalGaeSae")
-
     @State private var failureNote: String = ""
-
+    
+    // 쓰레기통 관련 상태
+    @State private var trashVisible = false
+    @State private var trashHighlighted = false
+    @State private var draggingDogBirdID: UUID? = nil
+    
     @FocusState private var isTopTextFieldFocused: Bool
     @FocusState private var isBottomTextFieldFocused: Bool
     
@@ -39,8 +42,97 @@ struct MainView: View {
                     
                     // MARK: 개새들 (욕아님!)
                     ForEach(dogBirds) { dogBird in
-                        DogBirdView(dogBird: dogBird)
+                        ZStack {
+                            if dogBird.isFlying {
+                                LottieView(name: "flying_dogbird", loopMode: .loop)
+                                    .frame(width: dogBird.size, height: dogBird.size)
+                            } else {
+                                LottieView(name: "dogbird", loopMode: .loop)
+                                    .frame(width: dogBird.size, height: dogBird.size)
+                            }
+                        }
+                        .position(dogBird.position)
+                        .scaleEffect(draggingDogBirdID == dogBird.id ? 1.1 : 1.0)
+                        .shadow(
+                            color: .black.opacity(draggingDogBirdID == dogBird.id ? 0.3 : 0),
+                            radius: draggingDogBirdID == dogBird.id ? 10 : 0
+                        )
+                        .gesture(
+                            DragGesture()
+                                .onChanged { gesture in
+                                    // 드래그 시작 또는 진행 중
+                                    draggingDogBirdID = dogBird.id
+                                    dogBird.isFlying = false
+                                    dogBird.position = gesture.location
+                                    
+                                    // 쓰레기통 표시
+                                    trashVisible = true
+                                    
+                                    // 쓰레기통 위에 있는지 확인
+                                    let trashPosition = CGPoint(
+                                        x: geometry.size.width - 50,
+                                        y: geometry.size.height - 120
+                                    )
+                                    
+                                    let distance = sqrt(
+                                        pow(gesture.location.x - trashPosition.x, 2) +
+                                        pow(gesture.location.y - trashPosition.y, 2)
+                                    )
+                                    
+                                    trashHighlighted = distance < 45
+                                }
+                                .onEnded { gesture in
+                                    // 드래그 종료
+                                    let trashPosition = CGPoint(
+                                        x: geometry.size.width - 50,
+                                        y: geometry.size.height - 120
+                                    )
+                                    
+                                    let distance = sqrt(
+                                        pow(gesture.location.x - trashPosition.x, 2) +
+                                        pow(gesture.location.y - trashPosition.y, 2)
+                                    )
+                                    
+                                    // 쓰레기통 위에서 드롭되었으면 삭제
+                                    if distance < 45 {
+                                        withAnimation {
+                                            context.delete(dogBird)
+                                        }
+                                    }
+                                    
+                                    // 상태 초기화
+                                    draggingDogBirdID = nil
+                                    trashVisible = false
+                                    trashHighlighted = false
+                                }
+                        )
+                        .onTapGesture {
+                            if draggingDogBirdID == nil {
+                                showNoteDetail(for: dogBird)
+                            }
+                        }
                     }
+                    
+                    // MARK: 쓰레기통
+                    ZStack {
+                        Circle()
+                            .fill(trashHighlighted ? Color.red.opacity(0.3) : Color.gray.opacity(0.2))
+                            .frame(width: 70, height: 70)
+                            .overlay(
+                                Circle()
+                                    .stroke(trashHighlighted ? Color.red : Color.gray, lineWidth: 2)
+                            )
+                        
+                        Image(systemName: "trash")
+                            .font(.system(size: 30))
+                            .foregroundColor(trashHighlighted ? .red : .gray)
+                            .symbolEffect(.bounce, value: trashHighlighted)
+                    }
+                    .position(x: geometry.size.width - 50, y: geometry.size.height - 120)
+                    .opacity(trashVisible ? 1 : 0)
+                    .scaleEffect(trashVisible ? 1 : 0.5)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashVisible)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trashHighlighted)
                 }
                 .ignoresSafeArea(.all)
                 .onTapGesture {
@@ -161,7 +253,43 @@ struct MainView: View {
         .animation(.default, value: isTopTextFieldFocused)
         .animation(.default, value: isBottomTextFieldFocused)
         .onReceive(timer) { _ in
-            updateDogBirdPositions()
+            if draggingDogBirdID == nil {
+                updateDogBirdPositions()
+            }
+        }
+        .sheet(isPresented: $showingNoteDetail, onDismiss: {
+            if let selectedDogBird = selectedDogBird {
+                selectedDogBird.failureNote = editedNote
+            }
+        }) {
+            NavigationView {
+                VStack(spacing: 20) {
+                    if let dogBird = selectedDogBird {
+                        TextEditor(text: $editedNote)
+                            .padding()
+                            .background(Color(white: 0.95))
+                            .cornerRadius(10)
+                            .frame(minHeight: 150)
+                    } else {
+                        Text("개새를 선택해주세요")
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
+                .navigationBarTitle("실패 일기", displayMode: .inline)
+                .navigationBarItems(
+                    leading: Button("닫기") {
+                        showingNoteDetail = false
+                    },
+                    trailing: Button("저장") {
+                        if let selectedDogBird = selectedDogBird {
+                            selectedDogBird.failureNote = editedNote
+                        }
+                        showingNoteDetail = false
+                    }
+                )
+            }
         }
     }
     
@@ -179,6 +307,17 @@ struct MainView: View {
         
         context.insert(newDogBird)
         failureNote = ""
+    }
+    
+    // MARK: 노트 상세 보기 표시
+    @State private var selectedDogBird: DogBird?
+    @State private var showingNoteDetail = false
+    @State private var editedNote = ""
+    
+    private func showNoteDetail(for dogBird: DogBird) {
+        selectedDogBird = dogBird
+        editedNote = dogBird.failureNote
+        showingNoteDetail = true
     }
     
     // MARK: 개새 위치 업데이트
