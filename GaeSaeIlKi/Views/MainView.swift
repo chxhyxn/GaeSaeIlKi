@@ -2,7 +2,7 @@
 //  MainView.swift
 //  GaeSaeIlKi
 //
-//  Created by Sean Cho on 4/9/25.
+//  Updated on 4/10/25.
 //
 
 import SwiftUI
@@ -26,6 +26,11 @@ struct MainView: View {
     @FocusState private var isBottomTextFieldFocused: Bool
     
     @StateObject var soundManager = SoundManager()
+    
+    // 노트 팝업 관련 상태
+    @State private var selectedDogBird: DogBird?
+    @State private var showingNoteDetail = false
+    @State private var editedNote = ""
     
     let timer = Timer.publish(every: 0.03, on: .main, in: .common).autoconnect()
     
@@ -187,15 +192,11 @@ struct MainView: View {
                     }
                 }
                 .padding()
-                .background(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: 40, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                )
                 .frame(height: 120)
-                .clipShape(
-                    CustomCornerShape(
-                    topLeft: CGSize(width: 48, height: 40),
-                    topRight: CGSize(width: 48, height: 40),
-                    bottomLeft: CGSize(width: 48, height: 40),
-                    bottomRight: CGSize(width: 48, height: 40)
-                ))
                 .padding()
                 .shadow(radius: 1)
                 .onTapGesture {
@@ -254,6 +255,20 @@ struct MainView: View {
                 VolumeRingView(decibel: soundManager.soundLevel)
                 Spacer()
             }
+            
+            // MARK: 노트 상세 팝업
+            if showingNoteDetail, let dogBird = selectedDogBird {
+                PopupNoteDetailView(
+                    isPresented: $showingNoteDetail,
+                    failureNote: Binding(
+                        get: { self.editedNote },
+                        set: {
+                            self.editedNote = $0
+                            dogBird.failureNote = $0
+                        }
+                    )
+                )
+            }
         }
         .animation(.default, value: failureNote.isEmpty)
         .animation(.default, value: !isTopTextFieldFocused||currentGoal.isEmpty)
@@ -261,40 +276,6 @@ struct MainView: View {
         .animation(.default, value: isBottomTextFieldFocused)
         .onReceive(timer) { _ in
             updateDogBirdPositions()
-        }
-        .sheet(isPresented: $showingNoteDetail, onDismiss: {
-            if let selectedDogBird = selectedDogBird {
-                selectedDogBird.failureNote = editedNote
-            }
-        }) {
-            NavigationView {
-                VStack(spacing: 20) {
-                    if let dogBird = selectedDogBird {
-                        TextEditor(text: $editedNote)
-                            .padding()
-                            .background(Color(white: 0.95))
-                            .cornerRadius(10)
-                            .frame(minHeight: 150)
-                    } else {
-                        Text("개새를 선택해주세요")
-                    }
-                    
-                    Spacer()
-                }
-                .padding()
-                .navigationBarTitle("실패 일기", displayMode: .inline)
-                .navigationBarItems(
-                    leading: Button("닫기") {
-                        showingNoteDetail = false
-                    },
-                    trailing: Button("저장") {
-                        if let selectedDogBird = selectedDogBird {
-                            selectedDogBird.failureNote = editedNote
-                        }
-                        showingNoteDetail = false
-                    }
-                )
-            }
         }
     }
     
@@ -315,10 +296,6 @@ struct MainView: View {
     }
     
     // MARK: 노트 상세 보기 표시
-    @State private var selectedDogBird: DogBird?
-    @State private var showingNoteDetail = false
-    @State private var editedNote = ""
-    
     private func showNoteDetail(for dogBird: DogBird) {
         selectedDogBird = dogBird
         editedNote = dogBird.failureNote
