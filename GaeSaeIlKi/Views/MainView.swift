@@ -177,6 +177,7 @@ struct MainView: View {
                             UserDefaults.standard.set(currentGoal, forKey: "currentGoal")
                         }) {
                             Image(systemName: "checkmark")
+                                .symbolEffect(.bounce, value: !isTopTextFieldFocused||currentGoal.isEmpty)
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(!isTopTextFieldFocused||currentGoal.isEmpty ? .gray.opacity(0.2) : .gray)
                                 .frame(width: 50, height: 50)
@@ -193,12 +194,12 @@ struct MainView: View {
                 }
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 40, style: .continuous)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .fill(.ultraThinMaterial)
+                        .shadow(radius: 1)
                 )
                 .frame(height: 120)
                 .padding()
-                .shadow(radius: 1)
                 .onTapGesture {
                     isTopTextFieldFocused = false
                     isBottomTextFieldFocused = false
@@ -224,6 +225,7 @@ struct MainView: View {
                         isBottomTextFieldFocused = false
                     }) {
                         Image(systemName: "plus")
+                            .symbolEffect(.bounce, value: failureNote.isEmpty)
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundColor(failureNote.isEmpty ? .gray.opacity(0.2) : .gray)
                             .frame(width: 50, height: 50)
@@ -240,7 +242,7 @@ struct MainView: View {
                 .padding()
                 .background(.ultraThinMaterial)
                 .frame(height: 80)
-                .clipShape(.rect(cornerRadius: 40))
+                .clipShape(.rect(cornerRadius: 20))
                 .padding()
                 .shadow(radius: 1)
                 .onTapGesture {
