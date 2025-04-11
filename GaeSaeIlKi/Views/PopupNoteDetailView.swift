@@ -12,10 +12,8 @@ struct PopupNoteDetailView: View {
     @Binding var failureNote: String
     @State private var editedNote: String
     @State private var isEditing: Bool = false
-    
-    // For animation
-    @State private var scale: CGFloat = 0.8
-    @State private var opacity: Double = 0
+        
+    @GestureState private var dragOffset: CGFloat = 0
     
     init(isPresented: Binding<Bool>, failureNote: Binding<String>) {
         self._isPresented = isPresented
@@ -25,21 +23,20 @@ struct PopupNoteDetailView: View {
     
     var body: some View {
         ZStack {
-            // Background dimming
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .opacity(opacity)
-                .onTapGesture {
-                    closePopup()
-                }
-            
             // Glassmorphism popup card
             VStack(alignment: .leading, spacing: 10) {
                 // Header
-                HStack {
+                HStack(alignment: .top) {
                     Text("실패 일기")
                         .font(.headline)
                         .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    // 손잡이
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.secondary.opacity(0.4))
+                        .frame(width: 40, height: 5)
                     
                     Spacer()
                     
@@ -115,6 +112,7 @@ struct PopupNoteDetailView: View {
                     }
                     .frame(minHeight: 100, maxHeight: 200)
                     .padding(.horizontal)
+                    .padding(.bottom)
                 } else {
                     VStack {
                         Text(failureNote)
@@ -133,35 +131,8 @@ struct PopupNoteDetailView: View {
                     )
                     .frame(maxHeight: 200)
                     .padding(.horizontal)
+                    .padding(.bottom)
                 }
-                
-                // Footer
-                HStack {
-                    Spacer()
-                    
-                    Button(action: {
-                        if isEditing {
-                            commitChanges()
-                        } else {
-                            closePopup()
-                        }
-                    }) {
-                        Text(isEditing ? "완료" : "닫기")
-                            .fontWeight(.medium)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .background(
-                                Capsule()
-                                    .fill(.ultraThinMaterial)
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                                    )
-                            )
-                            .foregroundColor(.primary)
-                    }
-                }
-                .padding()
             }
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -172,15 +143,21 @@ struct PopupNoteDetailView: View {
                 .stroke(Color.white.opacity(0.5), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 5)
-            .frame(width: UIScreen.main.bounds.width * 0.85)
-            .scaleEffect(scale)
-            .opacity(opacity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                scale = 1.0
-                opacity = 1.0
-            }
+            .padding()
+            .offset(y: dragOffset)
+            .gesture(
+                DragGesture()
+                    .updating($dragOffset) { value, state, _ in
+                        if value.translation.height > 0 {
+                            state = value.translation.height
+                        }
+                    }
+                    .onEnded { value in
+                        if value.translation.height > 100 {
+                            closePopup()
+                        }
+                    }
+            )
         }
         .animation(.default, value: isEditing)
     }
@@ -191,14 +168,6 @@ struct PopupNoteDetailView: View {
     }
     
     private func closePopup() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            scale = 0.8
-            opacity = 0
-        }
-        
-        // Delay dismissal to allow animation to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            isPresented = false
-        }
+        isPresented = false
     }
 }
