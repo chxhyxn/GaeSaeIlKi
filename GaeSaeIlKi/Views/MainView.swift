@@ -60,8 +60,10 @@ struct MainView: View {
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(trashHighlighted ? .red : .gray)
                             .frame(width: 70, height: 70)
-                            .background(trashHighlighted ? .white.opacity(0.9) : .white.opacity(0.8))
-                            .clipShape(Circle())
+                            .background(
+                                Circle()
+                                    .fill(trashHighlighted ? .white.opacity(0.9) : .white.opacity(0.8))
+                                )
                             .overlay(
                                 Circle()
                                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -163,13 +165,14 @@ struct MainView: View {
                     HStack {
                         TextField("당신의 목표를 작성하세요.", text: $currentGoal)
                             .padding()
-                            .background(isTopTextFieldFocused ? .white : .white.opacity(0.7))
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(isTopTextFieldFocused ? .white : .white.opacity(0.7))
+                                )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
-                            .shadow(radius: 1)
                             .focused($isTopTextFieldFocused)
                         
                         Button(action: {
@@ -181,8 +184,10 @@ struct MainView: View {
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(!isTopTextFieldFocused||currentGoal.isEmpty ? .gray.opacity(0.2) : .gray)
                                 .frame(width: 50, height: 50)
-                                .background(!isTopTextFieldFocused||currentGoal.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
-                                .clipShape(Circle())
+                                .background(
+                                    Circle()
+                                        .fill(!isTopTextFieldFocused||currentGoal.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
+                                    )
                                 .overlay(
                                     Circle()
                                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -211,13 +216,14 @@ struct MainView: View {
                 HStack {
                     TextField("오늘의 실패일기를 작성하세요.", text: $failureNote)
                         .padding()
-                        .background(isBottomTextFieldFocused ? .white : .white.opacity(0.7))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(isBottomTextFieldFocused ? .white : .white.opacity(0.7))
+                            )
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
                                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
                         )
-                        .shadow(radius: 1)
                         .focused($isBottomTextFieldFocused)
                     
                     Button(action: {
@@ -229,8 +235,10 @@ struct MainView: View {
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundColor(failureNote.isEmpty ? .gray.opacity(0.2) : .gray)
                             .frame(width: 50, height: 50)
-                            .background(failureNote.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
-                            .clipShape(Circle())
+                            .background(
+                                Circle()
+                                    .fill(failureNote.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
+                                )
                             .overlay(
                                 Circle()
                                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -240,11 +248,13 @@ struct MainView: View {
                     .disabled(failureNote.isEmpty)
                 }
                 .padding()
-                .background(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+                        .shadow(radius: 1)
+                )
                 .frame(height: 80)
-                .clipShape(.rect(cornerRadius: 20))
                 .padding()
-                .shadow(radius: 1)
                 .onTapGesture {
                     isTopTextFieldFocused = false
                     isBottomTextFieldFocused = false
