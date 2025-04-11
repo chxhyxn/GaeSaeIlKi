@@ -85,6 +85,19 @@ struct MainView: View {
                                 LottieView(name: "dogbird", loopMode: .loop)
                                     .frame(width: dogBird.size, height: dogBird.size)
                             }
+                            VStack {
+                                Spacer()
+                                    .frame(height: dogBird.size * 3 / 5)
+                                Text("이름 없는 개새")
+                                    .frame(height: 20)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(.black.opacity(0.3))
+                                    )
+                                    .foregroundStyle(.white)
+                            }
                         }
                         .position(dogBird.position)
                         .scaleEffect(draggingDogBirdID == dogBird.id ? 1.1 : 1.0)
@@ -225,6 +238,12 @@ struct MainView: View {
                                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
                         )
                         .focused($isBottomTextFieldFocused)
+                        .onSubmit {
+                            if !failureNote.isEmpty {
+                                addDogBird()
+                                isBottomTextFieldFocused = false
+                            }
+                        }
                     
                     Button(action: {
                         addDogBird()
