@@ -102,7 +102,6 @@ struct PopupNoteDetailView: View {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(.ultraThickMaterial)
-                            .opacity(0.8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.white.opacity(0.3), lineWidth: 1)
@@ -126,12 +125,11 @@ struct PopupNoteDetailView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(.ultraThinMaterial)
-                            .opacity(0.8)
+                            .fill(.white.opacity(0.3))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
                     )
                     .frame(maxHeight: 200)
                     .padding(.horizontal)
@@ -168,7 +166,6 @@ struct PopupNoteDetailView: View {
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .opacity(0.95)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
