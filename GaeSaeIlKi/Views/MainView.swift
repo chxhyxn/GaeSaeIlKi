@@ -188,26 +188,28 @@ struct MainView: View {
                             )
                             .focused($isTopTextFieldFocused)
                         
-                        Button(action: {
-                            isTopTextFieldFocused = false
-                            UserDefaults.standard.set(currentGoal, forKey: "currentGoal")
-                        }) {
-                            Image(systemName: "checkmark")
-                                .symbolEffect(.bounce, value: !isTopTextFieldFocused||currentGoal.isEmpty)
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(!isTopTextFieldFocused||currentGoal.isEmpty ? .gray.opacity(0.2) : .gray)
-                                .frame(width: 50, height: 50)
-                                .background(
-                                    Circle()
-                                        .fill(!isTopTextFieldFocused||currentGoal.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
+                        if isTopTextFieldFocused {
+                            Button(action: {
+                                isTopTextFieldFocused = false
+                                UserDefaults.standard.set(currentGoal, forKey: "currentGoal")
+                            }) {
+                                Image(systemName: "checkmark")
+                                    .symbolEffect(.bounce, value: !isTopTextFieldFocused||currentGoal.isEmpty)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(!isTopTextFieldFocused||currentGoal.isEmpty ? .gray.opacity(0.2) : .gray)
+                                    .frame(width: 50, height: 50)
+                                    .background(
+                                        Circle()
+                                            .fill(!isTopTextFieldFocused||currentGoal.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
                                     )
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                                )
-                                .shadow(color: currentGoal.isEmpty ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                    )
+                                    .shadow(color: currentGoal.isEmpty ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                            }
+                            .disabled(!isTopTextFieldFocused||currentGoal.isEmpty)
                         }
-                        .disabled(!isTopTextFieldFocused||currentGoal.isEmpty)
                     }
                 }
                 .padding()
@@ -226,8 +228,8 @@ struct MainView: View {
                 Spacer()
                 
                 // MARK: 하단 UI (실패일기 입력 영역)
-                HStack {
-                    TextField("오늘의 실패일기를 작성하세요.", text: $failureNote)
+                HStack(alignment: .top) {
+                    TextField("오늘의 실패일기를 작성하세요.", text: $failureNote, axis: .vertical)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -245,26 +247,37 @@ struct MainView: View {
                             }
                         }
                     
-                    Button(action: {
-                        addDogBird()
-                        isBottomTextFieldFocused = false
-                    }) {
-                        Image(systemName: "plus")
-                            .symbolEffect(.bounce, value: failureNote.isEmpty)
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(failureNote.isEmpty ? .gray.opacity(0.2) : .gray)
-                            .frame(width: 50, height: 50)
-                            .background(
-                                Circle()
-                                    .fill(failureNote.isEmpty ? .white.opacity(0.2) : .white.opacity(0.9))
+                    VStack {
+                        Button(action: {
+                            addDogBird()
+                            isBottomTextFieldFocused = false
+                        }) {
+                            Image(systemName: "plus")
+                                .symbolEffect(.bounce, value: failureNote.isEmpty || failureNote.count > 110)
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundColor(failureNote.isEmpty || failureNote.count > 110 ? .gray.opacity(0.2) : .gray)
+                                .frame(width: 50, height: 50)
+                                .background(
+                                    Circle()
+                                        .fill(failureNote.isEmpty || failureNote.count > 110 ? .white.opacity(0.2) : .white.opacity(0.9))
                                 )
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                            )
-                            .shadow(color: failureNote.isEmpty ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                )
+                                .shadow(color: failureNote.isEmpty || failureNote.count > 110 ? .clear : Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                        }
+                        .disabled(failureNote.isEmpty || failureNote.count > 110)
+                        
+                        if failureNote.count > 64 {
+                            Text("\(failureNote.count)/110")
+                                .font(.caption)
+                                .foregroundColor(
+                                    failureNote.count > 110 ? .red : .gray
+                                )
+                                .padding(.top, 4)
+                        }
                     }
-                    .disabled(failureNote.isEmpty)
                 }
                 .padding()
                 .background(
@@ -272,7 +285,7 @@ struct MainView: View {
                         .fill(.ultraThinMaterial)
                         .shadow(radius: 1)
                 )
-                .frame(height: 80)
+                .lineLimit(1...7)
                 .padding()
                 .onTapGesture {
                     isTopTextFieldFocused = false
